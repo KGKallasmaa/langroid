@@ -437,3 +437,57 @@ def seltz_search(query: str, num_results: int = 5) -> List[WebSearchResult]:
         results.append(result)
 
     return results
+
+
+KEENABLE_API_BASE = "https://api.keenable.ai/v1"
+
+
+def keenable_search(query: str, num_results: int = 5) -> List[WebSearchResult]:
+    """
+    Method that makes an API call to the Keenable search API that queries
+    the top `num_results` results. Returns a list of WebSearchResult objects.
+
+    Works without an API key: if KEENABLE_API_KEY is not set, the keyless
+    public endpoint is used (rate limited per IP). Setting KEENABLE_API_KEY
+    uses the authenticated endpoint.
+
+    Args:
+        query (str): The query body that users wants to make.
+        num_results (int): Number of top matching results that we want
+            to grab (Keenable returns at most 50 per call)
+    """
+
+    load_dotenv()
+
+    api_key = os.getenv("KEENABLE_API_KEY")
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        url = f"{KEENABLE_API_BASE}/search"
+        headers["X-API-Key"] = api_key
+    else:
+        url = f"{KEENABLE_API_BASE}/search/public"
+        headers["X-Keenable-Title"] = "langroid"
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json={"query": query, "max_results": max(1, min(num_results, 50))},
+        timeout=30,
+    )
+    response.raise_for_status()
+
+    results = []
+    for item in response.json().get("results", [])[:num_results]:
+        result = WebSearchResult(
+            title=item.get("title") or item.get("url", ""),
+            link=None,  # skip HTTP fetch; Keenable already provides a snippet
+            max_content_length=3500,
+            max_summary_length=300,
+        )
+        content = item.get("snippet") or item.get("description") or ""
+        result.link = item.get("url")
+        result.full_content = content[:3500]
+        result.summary = content[:300]
+        results.append(result)
+
+    return results

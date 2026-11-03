@@ -130,6 +130,7 @@ nav:
       - Pinecone: notes/pinecone.md
       - Tavily Search Tool: notes/tavily_search.md
       - Seltz Search Tool: notes/seltz_search.md
+      - Keenable Search Tool: notes/keenable_search.md
       - SerpApi Search Tool: notes/serpapi_search.md
       - Twitter Search via Xquik MCP: notes/twitter-search.md
       - Web Research via Baizhi MCP: notes/baizhi-research.md
